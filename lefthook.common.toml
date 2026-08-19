@@ -24,17 +24,17 @@ stage_fixed = true
 
 [pre-commit.commands.format-json]
 glob = ["*.json", "*.json5", "*.jsonc"]
-run = "oxfmt {staged_files}"
+run = "oxfmt --no-error-on-unmatched-pattern {staged_files}"
 stage_fixed = true
 
 [pre-commit.commands.format-markdown]
 glob = ["*.md", "*.markdown", "*.mdx"]
-run = "oxfmt {staged_files}"
+run = "oxfmt --no-error-on-unmatched-pattern {staged_files}"
 stage_fixed = true
 
 [pre-commit.commands.format-yaml]
 glob = ["*.yaml", "*.yml"]
-run = "oxfmt {staged_files}"
+run = "oxfmt --no-error-on-unmatched-pattern {staged_files}"
 stage_fixed = true
 
 [pre-commit.commands.mise-lock]
