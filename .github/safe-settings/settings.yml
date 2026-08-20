@@ -1,0 +1,50 @@
+---
+# Org-wide defaults applied to the explicitly managed repositories in
+# .github/workflows/safe-settings.yaml. Per-repo additions live in repos/.
+# Schema: https://github.com/github/safe-settings/blob/main/docs/sample-settings/settings.yml
+
+# Labels-only by intent. safe-settings 2.1.x mutates repository configuration
+# while reconciling repositories in parallel, so repository merge settings are
+# kept out of this file until that upstream race is fixed.
+labels:
+  exclude:
+    - name: ^app/
+    - name: ^area/
+    - name: "autorelease: pending"
+    - name: "autorelease: tagged"
+    - name: release-please:force-run
+
+  include:
+    - name: bug
+      color: d73a4a
+      description: Something isn't working
+    - name: documentation
+      color: 0075ca
+      description: Improvements or additions to documentation
+    - name: enhancement
+      color: a2eeef
+      description: New feature or request
+    - name: question
+      color: d876e3
+      description: Further information is requested
+    - name: wontfix
+      color: ffffff
+      description: This will not be worked on
+    - name: do-not-merge
+      color: ee0701
+      description: Marks PR that is not (yet) in a mergeable state
+    - name: stale
+      color: c5def5
+      description: Marked stale by automation due to inactivity
+    - name: type/digest
+      color: ffec19
+      description: Issue relates to a digest version bump
+    - name: type/patch
+      color: ffec19
+      description: Issue relates to a patch version bump
+    - name: type/minor
+      color: ff9800
+      description: Issue relates to a minor version bump
+    - name: type/major
+      color: f6412d
+      description: Issue relates to a major version bump
