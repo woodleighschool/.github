@@ -58,9 +58,9 @@ jobs:
           owner: ${{ github.repository_owner }}
           permission-metadata: read
 
-      # Limit reconciliation to the repositories onboarded to the shared Mise
-      # and Lefthook surface. Archived repositories are discovered on every run
-      # because safe-settings cannot PATCH them.
+      # Reconcile every active repository that inherits the shared Renovate
+      # preset. Archived repositories are discovered on every run because
+      # safe-settings cannot PATCH them.
       - name: Generate deployment-settings.yml
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
@@ -72,11 +72,14 @@ jobs:
             echo '  include:'
             echo '    - .github'
             echo '    - ADOverseas'
+            echo '    - SetRecoveryPassword'
+            echo '    - TagPrint'
             echo '    - assetcache-exporter'
             echo '    - autopkg'
             echo '    - autopkg-gitops'
             echo '    - epson-exporter'
             echo '    - freshservice-label'
+            echo '    - grinch'
             echo '    - leave-calendar'
             echo '    - onomazo'
             echo '    - renovate-config'
