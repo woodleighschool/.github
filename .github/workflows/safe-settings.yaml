@@ -71,7 +71,7 @@ jobs:
             echo 'restrictedRepos:'
             echo '  include:'
             echo '    - .github'
-            echo '    - ADOverseas'
+            echo '    - metabasis'
             echo '    - SetRecoveryPassword'
             echo '    - TagPrint'
             echo '    - assetcache-exporter'
