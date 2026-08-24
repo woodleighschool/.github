@@ -4,8 +4,8 @@ Org-wide defaults and shared automation for [woodleighschool](https://github.com
 
 ## Composite actions
 
-| Action                                     | Purpose                                  |
-| ------------------------------------------ | ---------------------------------------- |
-| [`apple-notarize`](actions/apple-notarize) | Notarizes and staples a signed macOS app |
+| Action                                     | Purpose                                      |
+| ------------------------------------------ | -------------------------------------------- |
+| [`apple-notarize`](actions/apple-notarize) | Notarizes and staples a signed macOS product |
 
 Each action has its own README, changelog and `<component>-v<version>` tag. Reference actions by commit SHA in calling repositories.

@@ -1,11 +1,11 @@
 ---
 # yaml-language-server: $schema=https://json.schemastore.org/github-action.json
 name: Apple Notarize
-description: Notarize and staple a signed macOS app
+description: Notarize and staple a signed macOS product
 
 inputs:
-  app-path:
-    description: Path to the signed macOS app bundle
+  product-path:
+    description: Path to a signed macOS app bundle or installer package
     required: true
   issuer-id:
     description: App Store Connect API issuer ID
@@ -20,36 +20,57 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Notarize and staple app
+    - name: Notarize and staple product
       shell: bash
       env:
-        APP_PATH: ${{ inputs.app-path }}
+        PRODUCT_PATH: ${{ inputs.product-path }}
         APPSTORE_ISSUER_ID: ${{ inputs.issuer-id }}
         APPSTORE_API_KEY_ID: ${{ inputs.api-key-id }}
         APPSTORE_API_PRIVATE_KEY: ${{ inputs.api-private-key }}
       run: |
         set -euo pipefail
 
-        if [[ ! -d "${APP_PATH}" ]]; then
-          echo "App bundle not found: ${APP_PATH}" >&2
+        if [[ ! -e "${PRODUCT_PATH}" ]]; then
+          echo "Product not found: ${PRODUCT_PATH}" >&2
           exit 1
         fi
 
         NOTARY_TEMP="$(mktemp -d "${RUNNER_TEMP}/apple-notarize.XXXXXX")"
-        NOTARY_ARCHIVE="${NOTARY_TEMP}/app.zip"
         NOTARY_KEY_PATH="${NOTARY_TEMP}/AuthKey.p8"
         trap 'rm -rf "${NOTARY_TEMP}"' EXIT
+
+        case "${PRODUCT_PATH}" in
+          *.app)
+            if [[ ! -d "${PRODUCT_PATH}" ]]; then
+              echo "App bundle is not a directory: ${PRODUCT_PATH}" >&2
+              exit 1
+            fi
+
+            NOTARY_SUBMISSION="${NOTARY_TEMP}/app.zip"
+            ditto -c -k --keepParent "${PRODUCT_PATH}" "${NOTARY_SUBMISSION}"
+            ;;
+          *.pkg)
+            if [[ ! -f "${PRODUCT_PATH}" ]]; then
+              echo "Installer package is not a file: ${PRODUCT_PATH}" >&2
+              exit 1
+            fi
+
+            NOTARY_SUBMISSION="${PRODUCT_PATH}"
+            ;;
+          *)
+            echo "Unsupported product type: ${PRODUCT_PATH}" >&2
+            exit 1
+            ;;
+        esac
 
         printf '%s' "${APPSTORE_API_PRIVATE_KEY}" > "${NOTARY_KEY_PATH}"
         chmod 600 "${NOTARY_KEY_PATH}"
 
-        ditto -c -k --keepParent "${APP_PATH}" "${NOTARY_ARCHIVE}"
-
-        xcrun notarytool submit "${NOTARY_ARCHIVE}" \
+        xcrun notarytool submit "${NOTARY_SUBMISSION}" \
           --key "${NOTARY_KEY_PATH}" \
           --key-id "${APPSTORE_API_KEY_ID}" \
           --issuer "${APPSTORE_ISSUER_ID}" \
           --wait
 
-        xcrun stapler staple "${APP_PATH}"
-        xcrun stapler validate "${APP_PATH}"
+        xcrun stapler staple "${PRODUCT_PATH}"
+        xcrun stapler validate "${PRODUCT_PATH}"
