@@ -82,6 +82,7 @@ jobs:
             echo '    - grinch'
             echo '    - leave-calendar'
             echo '    - onomazo'
+            echo '    - plinth'
             echo '    - renovate-config'
             echo '    - selectronic-exporter'
             echo '    - snipe-sync'
