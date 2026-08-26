@@ -1,4 +1,4 @@
 {
   "actions/apple-notarize": "2.0.0",
-  "actions/apple-pkg": "0.0.0"
+  "actions/apple-pkg": "1.0.0"
 }
