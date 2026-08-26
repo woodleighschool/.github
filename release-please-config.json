@@ -12,6 +12,15 @@
       "include-v-in-tag": true,
       "include-v-in-release-name": true,
       "always-update": true
+    },
+    "actions/apple-pkg": {
+      "component": "apple-pkg",
+      "changelog-path": "CHANGELOG.md",
+      "release-type": "simple",
+      "include-component-in-tag": true,
+      "include-v-in-tag": true,
+      "include-v-in-release-name": true,
+      "always-update": true
     }
   },
   "changelog-sections": [

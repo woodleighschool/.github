@@ -1,0 +1,97 @@
+---
+# yaml-language-server: $schema=https://json.schemastore.org/github-action.json
+name: Apple Package
+description: Build a signed macOS installer package from a destination root
+
+inputs:
+  app:
+    description: Optional signed macOS app bundle to install in /Applications
+    required: false
+  payload-root:
+    description: Destination-root hierarchy to include in the package
+    required: false
+    default: packaging/root
+  scripts:
+    description: Package scripts directory
+    required: false
+    default: packaging/scripts
+  identifier:
+    description: Package identifier
+    required: true
+  version:
+    description: Package version
+    required: true
+  signing-identity:
+    description: Developer ID Installer signing identity
+    required: true
+  output:
+    description: Output package path
+    required: true
+
+outputs:
+  path:
+    description: Path to the signed installer package
+    value: ${{ steps.package.outputs.path }}
+
+runs:
+  using: composite
+  steps:
+    - name: Build and sign package
+      id: package
+      shell: bash
+      env:
+        APP_PATH: ${{ inputs.app }}
+        PAYLOAD_ROOT: ${{ inputs.payload-root }}
+        SCRIPTS_PATH: ${{ inputs.scripts }}
+        PACKAGE_IDENTIFIER: ${{ inputs.identifier }}
+        PACKAGE_VERSION: ${{ inputs.version }}
+        SIGNING_IDENTITY: ${{ inputs.signing-identity }}
+        OUTPUT_PATH: ${{ inputs.output }}
+      run: |
+        set -euo pipefail
+
+        PACKAGE_ROOT="$(mktemp -d "${RUNNER_TEMP}/apple-pkg.XXXXXX")"
+        trap 'rm -rf "${PACKAGE_ROOT}"' EXIT
+
+        if [[ -d "${PAYLOAD_ROOT}" ]]; then
+          ditto --norsrc "${PAYLOAD_ROOT}" "${PACKAGE_ROOT}"
+        elif [[ -n "${PAYLOAD_ROOT}" && "${PAYLOAD_ROOT}" != "packaging/root" ]]; then
+          echo "Payload root not found: ${PAYLOAD_ROOT}" >&2
+          exit 1
+        fi
+
+        if [[ -n "${APP_PATH}" ]]; then
+          if [[ ! -d "${APP_PATH}" ]]; then
+            echo "App bundle not found: ${APP_PATH}" >&2
+            exit 1
+          fi
+
+          codesign --verify --deep --strict --verbose=2 "${APP_PATH}"
+          mkdir -p "${PACKAGE_ROOT}/Applications"
+          ditto --norsrc \
+            "${APP_PATH}" \
+            "${PACKAGE_ROOT}/Applications/$(basename "${APP_PATH}")"
+        elif [[ ! -d "${PAYLOAD_ROOT}" ]]; then
+          echo "An app or payload root is required" >&2
+          exit 1
+        fi
+
+        mkdir -p "$(dirname "${OUTPUT_PATH}")"
+
+        args=(
+          --root "${PACKAGE_ROOT}"
+          --identifier "${PACKAGE_IDENTIFIER}"
+          --version "${PACKAGE_VERSION}"
+          --install-location /
+          --sign "${SIGNING_IDENTITY}"
+        )
+
+        if [[ -d "${SCRIPTS_PATH}" ]]; then
+          args+=(--scripts "${SCRIPTS_PATH}")
+        elif [[ -n "${SCRIPTS_PATH}" && "${SCRIPTS_PATH}" != "packaging/scripts" ]]; then
+          echo "Scripts directory not found: ${SCRIPTS_PATH}" >&2
+          exit 1
+        fi
+
+        pkgbuild "${args[@]}" "${OUTPUT_PATH}"
+        echo "path=${OUTPUT_PATH}" >> "${GITHUB_OUTPUT}"
