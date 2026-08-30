@@ -1,9 +1,7 @@
 ---
-# Baseline branch protection for every repository admitted by the workflow's
-# deployment allowlist. Per-repo additions live in ../repos/<repo>.yml.
 suborgrepos:
-  - "*"
-  - ".github"
+  - leave-calendar
+  - talaria
 
 rulesets:
   - name: main
@@ -32,3 +30,10 @@ rulesets:
           required_review_thread_resolution: false
           allowed_merge_methods:
             - squash
+      - type: required_status_checks
+        parameters:
+          strict_required_status_checks_policy: true
+          do_not_enforce_on_create: false
+          required_status_checks:
+            - context: Build Success
+              integration_id: 15368

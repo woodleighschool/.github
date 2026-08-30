@@ -1,6 +1,6 @@
 ---
-# Org-wide defaults applied to the explicitly managed repositories in
-# .github/workflows/safe-settings.yaml. Per-repo additions live in repos/.
+# Org-wide defaults applied to the repositories in safe-settings-deployment.yml.
+# Branch rules live in suborgs/.
 # Schema: https://github.com/github/safe-settings/blob/main/docs/sample-settings/settings.yml
 
 # Labels-only by intent. safe-settings 2.1.x mutates repository configuration

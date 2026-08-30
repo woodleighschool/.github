@@ -1,0 +1,23 @@
+---
+restrictedRepos:
+  include:
+    - .github
+    - SetRecoveryPassword
+    - TagPrint
+    - assetcache-exporter
+    - autopkg
+    - autopkg-gitops
+    - epson-exporter
+    - freshservice-label
+    - leave-calendar
+    - metabasis
+    - onomazo
+    - plinth
+    - renovate-config
+    - selectronic-exporter
+    - snipe-sync
+    - talaria
+    - woodbox
+    - woodgate
+    - woodstar
+    - woodsweep
