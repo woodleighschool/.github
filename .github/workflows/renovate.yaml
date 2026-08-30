@@ -37,7 +37,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: renovate
+  group: renovate-${{ inputs.autodiscoverFilter || 'scheduled' }}
   cancel-in-progress: false
 
 jobs:
