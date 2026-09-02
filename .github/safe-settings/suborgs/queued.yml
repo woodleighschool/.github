@@ -6,17 +6,18 @@ suborgrepos:
   - autopkg-gitops
   - epson-exporter
   - freshservice-label
+  - goodies
   - metabasis
   - onomazo
   - plinth
   - renovate-config
   - selectronic-exporter
+  - slideforge
   - snipe-sync
   - woodbox
   - woodgate
   - woodstar
   - woodsweep
-  - slideforge
 
 rulesets:
   - name: main

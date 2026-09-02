@@ -9,6 +9,7 @@ restrictedRepos:
     - autopkg-gitops
     - epson-exporter
     - freshservice-label
+    - goodies
     - leave-calendar
     - metabasis
     - onomazo
