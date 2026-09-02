@@ -15,6 +15,7 @@ restrictedRepos:
     - plinth
     - renovate-config
     - selectronic-exporter
+    - slideforge
     - snipe-sync
     - talaria
     - woodbox

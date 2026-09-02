@@ -16,6 +16,7 @@ suborgrepos:
   - woodgate
   - woodstar
   - woodsweep
+  - slideforge
 
 rulesets:
   - name: main
