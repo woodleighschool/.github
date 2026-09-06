@@ -47,7 +47,7 @@ glob = [".mise.toml", ".mise/config.toml"]
 run = 'mise lock -p linux-x64,linux-arm64,macos-arm64 && { for f in {staged_files}; do l="$(dirname "$f")/mise.lock"; [ -f "$l" ] && git add "$l"; done; true; }'
 
 [pre-commit.commands.actionlint]
-glob = [".github/workflows/*.yaml"]
+glob = [".github/workflows/*.{yaml,yml}"]
 run = '''
 actionlint -shellcheck= \
   -ignore 'unexpected key "(background|cancel|parallel|wait|wait-all)" for step' \
@@ -62,5 +62,9 @@ glob = ["*.sh"]
 run = "shellcheck {staged_files}"
 
 [pre-commit.commands.zizmor]
-glob = [".github/workflows/*.yaml", ".github/actions/**/action.yaml", "actions/**/action.yaml"]
+glob = [
+  ".github/workflows/*.{yaml,yml}",
+  ".github/actions/**/action.{yaml,yml}",
+  "actions/**/action.{yaml,yml}",
+]
 run = "zizmor --offline {staged_files}"
