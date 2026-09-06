@@ -18,6 +18,7 @@ restrictedRepos:
     - selectronic-exporter
     - slideforge
     - snipe-sync
+    - stemma
     - talaria
     - woodbox
     - woodgate
