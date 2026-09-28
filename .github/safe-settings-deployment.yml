@@ -20,6 +20,7 @@ restrictedRepos:
     - snipe-sync
     - stemma
     - talaria
+    - tass-go-sdk
     - woodbox
     - woodgate
     - woodstar

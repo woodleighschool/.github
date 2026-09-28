@@ -15,6 +15,7 @@ suborgrepos:
   - slideforge
   - snipe-sync
   - stemma
+  - tass-go-sdk
   - woodbox
   - woodgate
   - woodstar
