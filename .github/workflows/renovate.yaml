@@ -14,7 +14,7 @@ on:
         required: false
         type: boolean
       autodiscoverFilter:
-        description: Autodiscover Filter
+        description: Repository name, or * for every repository
         default: "*"
         required: false
       logLevel:
@@ -41,12 +41,14 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  renovate:
-    name: Renovate
+  # Each repository gets its own run and a token for that repository only,
+  # because mise and go generate run the repository's own code beside it.
+  fan-out:
+    name: Fan Out
+    if: ${{ (inputs.autodiscoverFilter || '*') == '*' }}
     runs-on: ubuntu-26.04
     permissions:
-      contents: read
-      packages: read
+      actions: write
     steps:
       - name: Generate Token
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
@@ -55,6 +57,55 @@ jobs:
           client-id: ${{ secrets.BOT_CLIENT_ID }}
           private-key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
+          permission-metadata: read
+
+      - name: Start a run per repository
+        env:
+          APP_TOKEN: ${{ steps.app-token.outputs.token }}
+          GH_TOKEN: ${{ github.token }}
+          DRY_RUN: ${{ inputs.dryRun == true }}
+          LOG_LEVEL: ${{ inputs.logLevel || 'debug' }}
+          REPO_CACHE: ${{ inputs.repoCache || 'enabled' }}
+        run: |
+          # wood-ops runs its own Renovate.
+          repos=$(GH_TOKEN="${APP_TOKEN}" gh api --paginate /installation/repositories \
+            --jq '.repositories[] | select(.archived | not) | .name | select(. != "wood-ops")')
+          for repo in ${repos}; do
+            gh workflow run renovate.yaml \
+              --repo "${GITHUB_REPOSITORY}" \
+              --ref "${GITHUB_REF_NAME}" \
+              --field "autodiscoverFilter=${repo}" \
+              --field "dryRun=${DRY_RUN}" \
+              --field "logLevel=${LOG_LEVEL}" \
+              --field "repoCache=${REPO_CACHE}"
+          done
+
+  renovate:
+    name: Renovate
+    if: ${{ (inputs.autodiscoverFilter || '*') != '*' }}
+    runs-on: ubuntu-26.04
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - name: Check repository name
+        env:
+          REPOSITORY: ${{ inputs.autodiscoverFilter }}
+        run: |
+          # The name also scopes the token, so a list or pattern is refused.
+          if [[ ! "${REPOSITORY}" =~ ^[A-Za-z0-9._-]+$ ]]; then
+            echo "::error::Expected a single repository name"
+            exit 1
+          fi
+
+      - name: Generate Token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        id: app-token
+        with:
+          client-id: ${{ secrets.BOT_CLIENT_ID }}
+          private-key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ inputs.autodiscoverFilter }}
           permission-checks: write
           permission-contents: write
           permission-issues: write
@@ -68,8 +119,8 @@ jobs:
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: /tmp/renovate/cache/renovate/repository
-          key: renovate-repository-cache-${{ github.run_id }}-${{ github.run_attempt }}
-          restore-keys: renovate-repository-cache-
+          key: renovate-repository-cache/${{ inputs.autodiscoverFilter }}/${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: renovate-repository-cache/${{ inputs.autodiscoverFilter }}/
 
       - name: Align cache ownership for the Renovate container
         run: |
@@ -84,7 +135,7 @@ jobs:
           LOG_LEVEL: ${{ inputs.logLevel || 'debug' }}
           RENOVATE_DRY_RUN: ${{ inputs.dryRun == true }}
           RENOVATE_AUTODISCOVER: true
-          RENOVATE_AUTODISCOVER_FILTER: ${{ github.repository_owner }}/${{ inputs.autodiscoverFilter || '*' }}
+          RENOVATE_AUTODISCOVER_FILTER: ${{ github.repository_owner }}/${{ inputs.autodiscoverFilter }}
           RENOVATE_INTERNAL_CHECKS_FILTER: strict
           RENOVATE_PLATFORM: github
           RENOVATE_PLATFORM_COMMIT: true
@@ -100,4 +151,4 @@ jobs:
         uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: /tmp/renovate/cache/renovate/repository
-          key: renovate-repository-cache-${{ github.run_id }}-${{ github.run_attempt }}
+          key: renovate-repository-cache/${{ inputs.autodiscoverFilter }}/${{ github.run_id }}-${{ github.run_attempt }}
