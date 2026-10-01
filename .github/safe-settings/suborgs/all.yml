@@ -1,8 +1,8 @@
 ---
 suborgrepos:
-  - leave-calendar
-  - talaria
-
+  - "*"
+  # "*" skips dot-names
+  - ".github"
 rulesets:
   - name: main
     target: branch
@@ -30,10 +30,3 @@ rulesets:
           required_review_thread_resolution: false
           allowed_merge_methods:
             - squash
-      - type: required_status_checks
-        parameters:
-          strict_required_status_checks_policy: true
-          do_not_enforce_on_create: false
-          required_status_checks:
-            - context: Build Success
-              integration_id: 15368

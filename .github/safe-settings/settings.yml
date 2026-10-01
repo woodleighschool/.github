@@ -1,11 +1,4 @@
 ---
-# Org-wide defaults applied to the repositories in safe-settings-deployment.yml.
-# Branch rules live in suborgs/.
-# Schema: https://github.com/github/safe-settings/blob/main/docs/sample-settings/settings.yml
-
-# Labels-only by intent. safe-settings 2.1.x mutates repository configuration
-# while reconciling repositories in parallel, so repository merge settings are
-# kept out of this file until that upstream race is fixed.
 labels:
   exclude:
     - name: ^app/
@@ -13,6 +6,8 @@ labels:
     - name: "autorelease: pending"
     - name: "autorelease: tagged"
     - name: release-please:force-run
+    # Starts stemma-catalog's software request workflow
+    - name: ^software-request$
 
   include:
     - name: bug
@@ -36,6 +31,7 @@ labels:
     - name: stale
       color: c5def5
       description: Marked stale by automation due to inactivity
+
     - name: type/digest
       color: ffec19
       description: Issue relates to a digest version bump

@@ -8,7 +8,6 @@ on:
       - main
     paths:
       - .github/safe-settings/**
-      - .github/safe-settings-deployment.yml
       - .github/workflows/safe-settings.yaml
   schedule:
     - cron: "0 6 * * *"
@@ -55,6 +54,31 @@ jobs:
         working-directory: ${{ env.SAFE_SETTINGS_DIR }}
         run: npm ci
 
+      - name: Generate Token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ secrets.BOT_CLIENT_ID }}
+          private-key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          permission-metadata: read
+
+      # Archived repos reject the PATCH; private repos, forks and wood-ops (own labels) don't need it.
+      - name: Generate deployment-settings.yml
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          OWNER: ${{ github.repository_owner }}
+        run: |
+          {
+            echo '---'
+            echo 'restrictedRepos:'
+            echo '  exclude:'
+            echo '    - wood-ops'
+            gh repo list "$OWNER" --limit 200 --json name,isArchived,isFork,visibility \
+              --jq '.[] | select(.isArchived or .isFork or .visibility != "PUBLIC") | "    - " + .name'
+          } > deployment-settings.yml
+          cat deployment-settings.yml
+
       - name: Run safe-settings full-sync
         working-directory: ${{ env.SAFE_SETTINGS_DIR }}
         env:
@@ -63,6 +87,6 @@ jobs:
           PRIVATE_KEY: ${{ secrets.BOT_APP_PRIVATE_KEY }}
           ADMIN_REPO: .github
           CONFIG_PATH: .github/safe-settings
-          DEPLOYMENT_CONFIG_FILE: ${{ github.workspace }}/.github/safe-settings-deployment.yml
+          DEPLOYMENT_CONFIG_FILE: ${{ github.workspace }}/deployment-settings.yml
           FULL_SYNC_NOP: ${{ inputs.dryRun || 'false' }}
         run: npm run full-sync
