@@ -1,12 +1,21 @@
 ---
 # yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
 name: Release Please
+run-name: Release Please (${{ inputs.repository || github.event.repository.name }})
 
 on:
   push:
     branches:
       - main
   workflow_dispatch:
+    inputs:
+      repository:
+        description: Repository name, defaults to this repository
+        required: false
+
+concurrency:
+  group: release-please-${{ inputs.repository || github.event.repository.name }}
+  cancel-in-progress: false
 
 jobs:
   release-please:
@@ -15,13 +24,25 @@ jobs:
       contents: write
       issues: write
       pull-requests: write
+    env:
+      REPOSITORY: ${{ inputs.repository || github.event.repository.name }}
     steps:
+      - name: Check repository name
+        run: |
+          # The name also scopes the token, so a list or pattern is refused.
+          if [[ ! "${REPOSITORY}" =~ ^[A-Za-z0-9._-]+$ ]]; then
+            echo "::error::Expected a single repository name"
+            exit 1
+          fi
+
       - name: Generate Token
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         id: app-token
         with:
           client-id: ${{ secrets.BOT_CLIENT_ID }}
           private-key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ env.REPOSITORY }}
           permission-contents: write
           permission-issues: write
           permission-pull-requests: write
@@ -30,5 +51,6 @@ jobs:
         uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
         with:
           token: ${{ steps.app-token.outputs.token }}
+          repo-url: ${{ github.repository_owner }}/${{ env.REPOSITORY }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
