@@ -115,12 +115,16 @@ jobs:
           permission-vulnerability-alerts: read
           permission-workflows: write
 
-      - name: Restore Renovate repository cache
+      - name: Restore Renovate cache
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          path: /tmp/renovate/cache/renovate/repository
-          key: renovate-repository-cache/${{ inputs.autodiscoverFilter }}/${{ github.run_id }}-${{ github.run_attempt }}
-          restore-keys: renovate-repository-cache/${{ inputs.autodiscoverFilter }}/
+          # The package cache keeps GitHub tag and release lookups between runs,
+          # so each run only asks GitHub for what changed.
+          path: |
+            /tmp/renovate/cache/renovate/repository
+            /tmp/renovate/cache/renovate/renovate-cache-v1
+          key: renovate-cache/${{ inputs.autodiscoverFilter }}/${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: renovate-cache/${{ inputs.autodiscoverFilter }}/
 
       - name: Align cache ownership for the Renovate container
         run: |
@@ -146,9 +150,11 @@ jobs:
         with:
           token: ${{ steps.app-token.outputs.token }}
 
-      - name: Save Renovate repository cache
+      - name: Save Renovate cache
         if: always()
         uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          path: /tmp/renovate/cache/renovate/repository
-          key: renovate-repository-cache/${{ inputs.autodiscoverFilter }}/${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            /tmp/renovate/cache/renovate/repository
+            /tmp/renovate/cache/renovate/renovate-cache-v1
+          key: renovate-cache/${{ inputs.autodiscoverFilter }}/${{ github.run_id }}-${{ github.run_attempt }}
