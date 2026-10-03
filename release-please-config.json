@@ -10,8 +10,7 @@
       "release-type": "simple",
       "include-component-in-tag": true,
       "include-v-in-tag": true,
-      "include-v-in-release-name": true,
-      "always-update": true
+      "include-v-in-release-name": true
     },
     "actions/apple-pkg": {
       "component": "apple-pkg",
@@ -19,58 +18,7 @@
       "release-type": "simple",
       "include-component-in-tag": true,
       "include-v-in-tag": true,
-      "include-v-in-release-name": true,
-      "always-update": true
+      "include-v-in-release-name": true
     }
-  },
-  "changelog-sections": [
-    {
-      "type": "feat",
-      "section": "Features"
-    },
-    {
-      "type": "fix",
-      "section": "Bug Fixes"
-    },
-    {
-      "type": "perf",
-      "section": "Performance Improvements"
-    },
-    {
-      "type": "refactor",
-      "section": "Code Refactoring"
-    },
-    {
-      "type": "revert",
-      "section": "Reverts"
-    },
-    {
-      "type": "docs",
-      "section": "Documentation"
-    },
-    {
-      "type": "style",
-      "section": "Styles"
-    },
-    {
-      "type": "test",
-      "section": "Tests"
-    },
-    {
-      "type": "build",
-      "section": "Build System"
-    },
-    {
-      "type": "ci",
-      "section": "Continuous Integration"
-    },
-    {
-      "type": "chore",
-      "section": "Miscellaneous Chores"
-    },
-    {
-      "type": "deps",
-      "section": "Dependencies"
-    }
-  ]
+  }
 }
