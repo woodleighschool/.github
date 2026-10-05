@@ -17,13 +17,30 @@ glob = ["*.just", ".justfile"]
 run = 'for f in {staged_files}; do just --justfile "$f" --fmt; done'
 stage_fixed = true
 
-[pre-commit.commands.format-mise]
-glob = [".mise.toml", ".mise/config.toml"]
+# Format the config before locking it; concurrent rewrites can empty the lock.
+[[pre-commit.jobs]]
+name = "mise"
+glob = [".mise/config.toml", ".mise/conf.d/*.toml"]
+
+[pre-commit.jobs.group]
+piped = true
+
+[[pre-commit.jobs.group.jobs]]
+name = "format-mise"
 run = "mise fmt"
 stage_fixed = true
 
+[[pre-commit.jobs.group.jobs]]
+name = "lock-mise"
+# Stage only generated locks, including removed sidecars; leave tasks and config alone.
+run = """
+mise lock && git ls-files -z --cached --others --exclude-standard -- .mise/mise.lock .mise/locks |
+  git --literal-pathspecs add -A --pathspec-from-file=- --pathspec-file-nul
+"""
+
 [pre-commit.commands.format-json]
 glob = ["*.json", "*.json5", "*.jsonc"]
+exclude = [".mise/locks/**"]
 run = "oxfmt --no-error-on-unmatched-pattern {staged_files}"
 stage_fixed = true
 
@@ -34,17 +51,9 @@ stage_fixed = true
 
 [pre-commit.commands.format-yaml]
 glob = ["*.yaml", "*.yml"]
+exclude = [".mise/locks/**"]
 run = "oxfmt --no-error-on-unmatched-pattern {staged_files}"
 stage_fixed = true
-
-[pre-commit.commands.mise-lock]
-glob = [".mise.toml", ".mise/config.toml"]
-# The -p list pins which platforms locks are generated for. mise infers the
-# set from an existing lockfile (including for newly added tools), so this
-# only decides the bootstrap case where no lockfile exists yet — without it a
-# fresh lock would pick up musl and windows entries nothing installs, and
-# those arches are where upstreams most often miss assets or signatures.
-run = 'mise lock -p linux-x64,linux-arm64,macos-arm64 && { for f in {staged_files}; do l="$(dirname "$f")/mise.lock"; [ -f "$l" ] && git add "$l"; done; true; }'
 
 [pre-commit.commands.actionlint]
 glob = [".github/workflows/*.{yaml,yml}"]
