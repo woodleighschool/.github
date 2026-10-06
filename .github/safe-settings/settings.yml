@@ -6,8 +6,9 @@ labels:
     - name: "autorelease: pending"
     - name: "autorelease: tagged"
     - name: release-please:force-run
-    # Starts stemma-catalog's software request workflow
+    # stemma-catalog's software request workflow
     - name: ^software-request$
+    - name: ^needs-input$
 
   include:
     - name: bug
