@@ -63,7 +63,7 @@ jobs:
           owner: ${{ github.repository_owner }}
           permission-metadata: read
 
-      # Archived repos reject the PATCH; private repos, forks and wood-ops (own labels) don't need it.
+      # Private repos, forks and wood-ops (own labels) are managed separately.
       - name: Generate deployment-settings.yml
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
@@ -74,8 +74,8 @@ jobs:
             echo 'restrictedRepos:'
             echo '  exclude:'
             echo '    - wood-ops'
-            gh repo list "$OWNER" --limit 200 --json name,isArchived,isFork,visibility \
-              --jq '.[] | select(.isArchived or .isFork or .visibility != "PUBLIC") | "    - " + .name'
+            gh repo list "$OWNER" --limit 200 --json name,isFork,visibility \
+              --jq '.[] | select(.isFork or .visibility != "PUBLIC") | "    - " + .name'
           } > deployment-settings.yml
           cat deployment-settings.yml
 
