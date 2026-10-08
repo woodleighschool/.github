@@ -147,7 +147,12 @@ jobs:
             {"MISE_TRUSTED_CONFIG_PATHS":"/tmp/renovate/repos",
              "MISE_NO_HOOKS":"1",
              "GH_TOKEN":"${{ steps.app-token.outputs.token }}"}
-          RENOVATE_ALLOWED_COMMANDS: '["^mise exec github:github/gh-aw -- gh-aw compile$"]'
+          RENOVATE_ALLOWED_COMMANDS: >-
+            [
+              "^mise exec github:github/gh-aw -- gh-aw compile$",
+              "^pnpm install --frozen-lockfile --ignore-scripts$",
+              "^pnpm run types$"
+            ]
           RENOVATE_REPOSITORY_CACHE: ${{ inputs.repoCache || 'enabled' }}
           RENOVATE_PRESET_CACHE_PERSISTENCE: "true"
         with:
