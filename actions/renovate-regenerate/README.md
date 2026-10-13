@@ -27,11 +27,21 @@ The generation job denies cache access with `cache-mode: none`, so dependency co
 cannot seed caches for other workflows on `main`. Safe Settings also disables mise
 caching before it receives the signing key.
 
-The caller supplies `repository` (a name within this organization), `pull-request`,
-`head-sha`, `task` and newline-separated `paths`. Optional `tools` limits mise
-installation; `workflows: true` requests permission to commit generated workflows.
-The task and file paths are owned by the caller. Both jobs use `$/` references,
-which load these actions from the workflow run's commit without a checkout.
+The caller supplies `repository` (a name within this organization), `pull-request`
+and `head-sha`. Each job reads `.github/renovate-regenerate.json` from the target
+repository's `main` independently. That file owns the task, tools, permitted paths
+and workflow-write permission; a dispatch or PR cannot change them.
+
+```json
+{
+  "task": "generate",
+  "paths": ["charts/*/README.md", "charts/*/values.schema.json"]
+}
+```
+
+Optional `tools` is a space-separated mise tool list; `workflows: true` requests
+permission to commit generated workflows. Both jobs use `$/` references, which
+load these actions from the workflow run's commit without a checkout.
 
 Target repositories must be public: generation and PR checks use the central
 workflow's read-only `GITHUB_TOKEN`, which cannot read another private repository.

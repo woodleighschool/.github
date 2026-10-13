@@ -15,19 +15,6 @@ on:
       head-sha:
         description: Pull request head commit to regenerate
         required: true
-      task:
-        description: Mise task that regenerates the files
-        required: true
-      paths:
-        description: Newline-separated git pathspecs of generated files to commit
-        required: true
-      tools:
-        description: Optional space-separated mise tools to install
-        required: false
-      workflows:
-        description: Request workflow-write permission for generated workflows
-        type: boolean
-        default: false
 
 concurrency:
   group: renovate-regenerate-${{ inputs.repository }}-${{ inputs.pull-request }}
@@ -56,11 +43,21 @@ jobs:
       MISE_TASK_RUN_AUTO_INSTALL: "false"
     steps:
       - name: Check Renovate pull request
+        id: pr
         run: |
           [[ "$REPOSITORY" =~ ^[A-Za-z0-9._-]+$ && "$PR_NUMBER" =~ ^[1-9][0-9]*$ && "$HEAD_SHA" =~ ^[a-f0-9]{40}$ ]]
           gh api "repos/${GH_REPO}/pulls/${PR_NUMBER}" | jq --exit-status --arg sha "$HEAD_SHA" --arg repo "$GH_REPO" '
             .state == "open" and .user.login == "renovate[bot]" and
             .head.repo.full_name == $repo and .base.ref == "main" and .head.sha == $sha'
+
+          config=$(gh api -H 'Accept: application/vnd.github.raw+json' "repos/${GH_REPO}/contents/.github/renovate-regenerate.json?ref=main" |
+            jq --compact-output --exit-status '
+              {task, paths, tools: (.tools // ""), workflows: (.workflows // false)} |
+              select((.task | type == "string" and length > 0) and
+                (.paths | type == "array" and length > 0 and all(.[]; type == "string" and length > 0)) and
+                (.tools | type == "string") and (.workflows | type == "boolean")) |
+              .paths |= join("\n")')
+          echo "config=$config" >> "$GITHUB_OUTPUT"
 
       - name: Regenerate
         id: regenerate
@@ -68,9 +65,9 @@ jobs:
         with:
           repository: ${{ inputs.repository }}
           head-sha: ${{ inputs.head-sha }}
-          tools: ${{ inputs.tools }}
-          task: ${{ inputs.task }}
-          paths: ${{ inputs.paths }}
+          tools: ${{ fromJSON(steps.pr.outputs.config).tools }}
+          task: ${{ fromJSON(steps.pr.outputs.config).task }}
+          paths: ${{ fromJSON(steps.pr.outputs.config).paths }}
 
   push:
     name: Push
@@ -79,7 +76,7 @@ jobs:
     runs-on: ubuntu-26.04
     timeout-minutes: 5
     steps:
-      # Read the PR again: the generator never controls the destination branch.
+      # Read the PR and main's policy again; neither comes from the generator.
       - name: Check Renovate pull request
         id: pr
         env:
@@ -92,6 +89,15 @@ jobs:
             .head.repo.full_name == $repo and .base.ref == "main" and .head.sha == $sha' <<< "$pr"
           jq --raw-output '"branch=\(.head.ref)"' <<< "$pr" >> "$GITHUB_OUTPUT"
 
+          config=$(gh api -H 'Accept: application/vnd.github.raw+json' "repos/${GH_REPO}/contents/.github/renovate-regenerate.json?ref=main" |
+            jq --compact-output --exit-status '
+              {task, paths, tools: (.tools // ""), workflows: (.workflows // false)} |
+              select((.task | type == "string" and length > 0) and
+                (.paths | type == "array" and length > 0 and all(.[]; type == "string" and length > 0)) and
+                (.tools | type == "string") and (.workflows | type == "boolean")) |
+              .paths |= join("\n")')
+          echo "config=$config" >> "$GITHUB_OUTPUT"
+
       - name: Push
         uses: $/actions/renovate-regenerate/push
         with:
@@ -100,5 +106,5 @@ jobs:
           head-ref: ${{ steps.pr.outputs.branch }}
           client-id: ${{ secrets.BOT_CLIENT_ID }}
           private-key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
-          permission-workflows: ${{ inputs.workflows && 'write' || '' }}
-          paths: ${{ inputs.paths }}
+          permission-workflows: ${{ fromJSON(steps.pr.outputs.config).workflows && 'write' || '' }}
+          paths: ${{ fromJSON(steps.pr.outputs.config).paths }}
