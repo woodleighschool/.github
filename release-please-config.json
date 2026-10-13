@@ -15,6 +15,12 @@
       "changelog-path": "CHANGELOG.md",
       "release-type": "simple",
       "include-component-in-tag": true
+    },
+    "actions/renovate-regenerate": {
+      "component": "renovate-regenerate",
+      "changelog-path": "CHANGELOG.md",
+      "release-type": "simple",
+      "include-component-in-tag": true
     }
   }
 }
