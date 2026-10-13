@@ -3,7 +3,8 @@
 Vendored from [home-operations/.github at `42a71fd`](https://github.com/home-operations/.github/tree/42a71fdfc6874da0f003ac4177f8ef48f55e262f/actions/renovate-regenerate),
 under the included [Apache-2.0 license](LICENSE). The two action definitions retain
 upstream's generation, artifact, commit and push steps. Local changes add a target
-repository/head, optional mise tool selection and optional workflow-write permission.
+repository/head, optional mise tool selection and optional workflow-write permission,
+and disable mise caching.
 
 Regenerates committed files on Renovate pull requests and pushes them to the pull request branch. The Mend-hosted Renovate app cannot run `postUpgradeTasks`, so a dependency bump that feeds generated output (a chart README, a values schema, a bundled `dist/`) would otherwise fail the repository's drift check.
 
@@ -21,6 +22,10 @@ separate jobs. It checks that the requested commit is still the head of an open,
 same-repository Renovate PR against `main` before generation and again before
 pushing. Only the push job receives the signing App credentials; its token is
 scoped to the requested repository.
+
+The generation job denies cache access with `cache-mode: none`, so dependency code
+cannot seed caches for other workflows on `main`. Safe Settings also disables mise
+caching before it receives the signing key.
 
 The caller supplies `repository` (a name within this organization), `pull-request`,
 `head-sha`, `task` and newline-separated `paths`. Optional `tools` limits mise
@@ -61,6 +66,7 @@ jobs:
       && github.event.pull_request.head.repo.full_name == github.repository }}
     name: Regenerate
     runs-on: ubuntu-26.04
+    cache-mode: none
     permissions:
       contents: read
     outputs:

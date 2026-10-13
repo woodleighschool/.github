@@ -1,0 +1,6 @@
+---
+paths:
+  .github/workflows/renovate-regenerate.yaml:
+    ignore:
+      # https://github.com/rhysd/actionlint/pull/745
+      - '^unexpected key "cache-mode" for "job" section'

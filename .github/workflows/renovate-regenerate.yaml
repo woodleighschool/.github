@@ -46,6 +46,7 @@ jobs:
   regenerate:
     name: Regenerate
     runs-on: ubuntu-26.04
+    cache-mode: none
     timeout-minutes: 10
     outputs:
       changed: ${{ steps.regenerate.outputs.changed }}
