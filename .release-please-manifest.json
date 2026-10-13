@@ -1,5 +1,5 @@
 {
   "actions/apple-notarize": "2.0.0",
   "actions/apple-pkg": "1.0.0",
-  "actions/renovate-regenerate": "1.0.0"
+  "actions/renovate-regenerate": "1.1.0"
 }
