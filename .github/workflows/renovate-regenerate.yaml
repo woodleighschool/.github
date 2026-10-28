@@ -29,6 +29,10 @@ env:
   PR_NUMBER: ${{ inputs.pull-request }}
   HEAD_SHA: ${{ inputs.head-sha }}
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   regenerate:
     name: Regenerate
