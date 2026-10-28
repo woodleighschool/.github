@@ -18,6 +18,10 @@ on:
         type: boolean
         default: false
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
 permissions:
   contents: read
 
@@ -30,6 +34,7 @@ jobs:
   full-sync:
     name: Reconcile org repository settings
     runs-on: ubuntu-26.04
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
