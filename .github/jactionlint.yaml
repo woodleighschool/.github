@@ -1,0 +1,6 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/jdx/jactionlint/main/schema/jactionlint-config.json
+ignores:
+  - rule: github-app
+    file: .github/workflows/safe-settings.yaml
+    reason: safe-settings manages every repository of the organization, so its token covers all of them.
