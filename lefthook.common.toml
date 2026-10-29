@@ -32,15 +32,7 @@ stage_fixed = true
 
 [[pre-commit.jobs.group.jobs]]
 name = "lock-mise"
-# Stage only generated locks, including removed sidecars; leave tasks and config alone.
-# Skip the add when there are none: an empty pathspec list makes `git add -A` stage everything.
-run = """
-mise lock || exit 1
-locks=".mise/mise.lock .mise/locks"
-[ -z "$(git ls-files --cached --others --exclude-standard -- $locks)" ] && exit 0
-git ls-files -z --cached --others --exclude-standard -- $locks |
-  git --literal-pathspecs add -A --pathspec-from-file=- --pathspec-file-nul
-"""
+run = 'mise lock && git add -A -- .mise ":(exclude).mise/*.toml"'
 
 [pre-commit.commands.format-json]
 glob = ["*.json", "*.json5", "*.jsonc"]
