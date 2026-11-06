@@ -3,7 +3,18 @@ jactionlint = "2.4.0"
 lefthook = "2.2.2"
 node = "26.13.0"
 oxfmt = "0.75.0"
+# @yarnpkg/libzip 3.2.2 shipped without provenance where 3.2.0 had it, so mise's
+# no-downgrade trust policy refuses the whole tree. It reaches us through
+# @yarnpkg/core, which requires ^3.2.2 — the floor, so no renovate version can
+# resolve past it. Drop the exclude once upstream publishes an attested release.
+"npm:renovate" = { version = "44.206.2", trust_policy_excludes = [
+  "@yarnpkg/libzip",
+] }
 shellcheck = "0.11.0"
+
+[tasks.validate]
+description = "Validate the Renovate preset"
+run = "renovate-config-validator --strict --no-global renovate-config.json .renovaterc.json5"
 
 [hooks]
 postinstall = "lefthook install"

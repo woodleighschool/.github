@@ -11,3 +11,7 @@ Org-wide defaults and shared automation for [woodleighschool](https://github.com
 | [`renovate-regenerate`](actions/renovate-regenerate) | Regenerates files and pushes them from a separate signing job |
 
 Each action has its own README, changelog and `<component>-v<version>` tag. Reference actions by commit SHA in calling repositories.
+
+## Renovate
+
+Repositories extend `local>woodleighschool/.github:renovate-config`, the preset in [`renovate-config.json`](renovate-config.json). Rules for a single repository belong in its own `.renovaterc.json5`.

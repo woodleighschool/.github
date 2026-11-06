@@ -22,7 +22,33 @@ concurrency:
 permissions:
   contents: read
 
+env:
+  MISE_NO_HOOKS: "1"
+  MISE_TASK_RUN_AUTO_INSTALL: "false"
+
 jobs:
+  validate:
+    if: >-
+      ${{ !(startsWith(github.head_ref, 'release-please--')
+      && github.event.pull_request.head.repo.full_name == github.repository) }}
+    name: Validate
+    runs-on: ubuntu-26.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Mise
+        uses: jdx/mise-action@f5be966e4a917d54244728e6a5fdcd1d93a35e6c # v5.2.6
+        with:
+          experimental: true
+          install_args: --locked node npm:renovate
+
+      - name: Validate Renovate preset
+        run: mise run validate
+
   workflow-lint:
     if: >-
       ${{ !(startsWith(github.head_ref, 'release-please--')
@@ -53,6 +79,7 @@ jobs:
     if: ${{ !cancelled() }}
     name: Build Success
     needs:
+      - validate
       - workflow-lint
     runs-on: ubuntu-26.04
     timeout-minutes: 15

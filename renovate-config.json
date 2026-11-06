@@ -1,0 +1,255 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    "docker:enableMajor",
+    "helpers:pinGitHubActionDigestsToSemver",
+    "abandonments:recommended",
+    "security:gomodIndirectSecurityUpdates",
+    ":automergePr",
+    ":configMigration",
+    ":dependencyDashboard",
+    ":disableRateLimiting"
+  ],
+  "dependencyDashboardTitle": "Renovate Dashboard 🤖",
+  "timezone": "Australia/Melbourne",
+  "minimumReleaseAgeBehaviour": "timestamp-optional",
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["before 6am on the first day of the month"],
+    "commitMessageExtra": "({{manager}})",
+    "additionalBranchPrefix": "{{manager}}-"
+  },
+  "ignorePaths": [
+    "**/node_modules/**",
+    "**/bower_components/**",
+    "**/vendor/**",
+    "**/examples/**",
+    "**/__tests__/**",
+    "**/test/**",
+    "**/tests/**",
+    "**/__fixtures__/**",
+    "**/.mise/locks/**"
+  ],
+  "gitIgnoredAuthors": ["225126206+woodmin[bot]@users.noreply.github.com"],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Process annotated dependencies",
+      "managerFilePatterns": ["/.*/"],
+      "matchStrings": [
+        "datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)(?: versioning=(?<versioning>\\S+))?\\n.+(:\\s|=)(&\\S+\\s)?[\"']?(?<currentValue>[^\"'\\s]+)[\"']?"
+      ],
+      "datasourceTemplate": "{{#if datasource}}{{{datasource}}}{{else}}github-releases{{/if}}",
+      "versioningTemplate": "{{#if versioning}}{{{versioning}}}{{/if}}"
+    },
+    {
+      "description": "Update shared action pins (per-action prefixed tags)",
+      "customType": "regex",
+      "managerFilePatterns": ["/\\.github/workflows/[^/]+\\.ya?ml$/"],
+      "matchStrings": [
+        "uses: woodleighschool/\\.github/actions/(?<action>[\\w-]+)@(?<currentDigest>[a-f0-9]{40})\\s+#\\s+[\\w-]+-(?<currentValue>v?\\d+\\.\\d+\\.\\d+)"
+      ],
+      "depNameTemplate": "woodleighschool/.github/actions/{{{action}}}",
+      "packageNameTemplate": "woodleighschool/.github",
+      "datasourceTemplate": "github-tags",
+      "extractVersionTemplate": "^{{{action}}}-(?<version>v?\\d+\\.\\d+\\.\\d+)$",
+      "versioningTemplate": "semver-coerced"
+    }
+  ],
+  "packageRules": [
+    {
+      "matchUpdateTypes": ["major", "minor", "patch"],
+      "commitMessageExtra": "({{currentVersion}} → {{newVersion}})"
+    },
+    {
+      "matchUpdateTypes": ["digest"],
+      "commitMessageExtra": "({{currentDigestShort}} → {{newDigestShort}})"
+    },
+    {
+      "matchDatasources": ["docker"],
+      "semanticCommitScope": "container",
+      "commitMessageTopic": "image {{depName}}"
+    },
+    {
+      "matchManagers": ["gomod"],
+      "semanticCommitScope": "go",
+      "commitMessageTopic": "module {{depName}}"
+    },
+    {
+      "matchManagers": ["cargo"],
+      "semanticCommitScope": "rust",
+      "commitMessageTopic": "crate {{depName}}"
+    },
+    {
+      "matchManagers": ["npm"],
+      "semanticCommitScope": "npm",
+      "commitMessageTopic": "dependency {{depName}}"
+    },
+    {
+      "matchManagers": ["github-actions"],
+      "semanticCommitType": "chore",
+      "semanticCommitScope": "github-action",
+      "commitMessageTopic": "action {{depName}}"
+    },
+    {
+      "matchDatasources": ["github-releases"],
+      "semanticCommitType": "chore",
+      "semanticCommitScope": "github-release",
+      "commitMessageTopic": "release {{depName}}"
+    },
+    {
+      "matchManagers": ["mise"],
+      "semanticCommitType": "chore",
+      "semanticCommitScope": "mise",
+      "commitMessageTopic": "tool {{depName}}"
+    },
+    {
+      "matchUpdateTypes": ["major"],
+      "labels": ["type/major"]
+    },
+    {
+      "matchUpdateTypes": ["minor"],
+      "labels": ["type/minor"]
+    },
+    {
+      "description": [
+        "zer0ver: a 0.x minor can break at any time. Label it as a major and put it on the major branch.",
+        "The prefix lands it on the major-<groupSlug> branch that Renovate uses to split grouped majors, not on the non-major group PR.",
+        "Keep this rule below the plain minor rule, so that it wins for 0.x."
+      ],
+      "matchUpdateTypes": ["minor"],
+      "matchCurrentVersion": "/^v?0\\./",
+      "labels": ["type/major"],
+      "additionalBranchPrefix": "major-"
+    },
+    {
+      "matchUpdateTypes": ["patch"],
+      "labels": ["type/patch"]
+    },
+    {
+      "matchUpdateTypes": ["digest"],
+      "labels": ["type/digest"]
+    },
+    {
+      "description": "GitHub Actions Group",
+      "matchManagers": ["github-actions"],
+      "groupName": "github-actions",
+      "minimumReleaseAge": "3 days"
+    },
+    {
+      "description": [
+        "Mise tools group: the catch-all for mise-managed dev tooling (linters, formatters, CLIs).",
+        "Keep it above the toolchain rules, so that their groupName wins for go, rust and node. A later rule overrides an earlier one.",
+        "Same minimumReleaseAge as the GitHub Actions group. A fresh release often uploads its per-arch assets and attestations after the tag appears. A lock taken too early leaves mise.lock without platform URLs."
+      ],
+      "matchManagers": ["mise"],
+      "groupName": "mise tools",
+      "groupSlug": "mise-tools",
+      "minimumReleaseAge": "3 days"
+    },
+    {
+      "description": "Go Toolchain Group",
+      "matchManagers": ["mise"],
+      "matchDepNames": ["go"],
+      "groupName": "Go toolchain",
+      "groupSlug": "go-toolchain"
+    },
+    {
+      "description": "Rust Toolchain Group",
+      "matchManagers": ["mise"],
+      "matchDepNames": ["rust"],
+      "matchFileNames": [".mise/config.toml"],
+      "groupName": "Rust toolchain",
+      "groupSlug": "rust-toolchain"
+    },
+    {
+      "description": "Node Toolchain Group",
+      "matchManagers": ["mise"],
+      "matchDepNames": ["node"],
+      "matchFileNames": [".mise/config.toml"],
+      "groupName": "Node toolchain",
+      "groupSlug": "node-toolchain"
+    },
+    {
+      "description": "pnpm Group",
+      "matchManagers": ["mise", "npm"],
+      "matchDepNames": ["pnpm"],
+      "matchDepTypes": ["tools", "packageManager"],
+      "matchFileNames": [".mise/config.toml", "**/package.json"],
+      "groupName": "pnpm",
+      "groupSlug": "pnpm",
+      "semanticCommitType": "chore"
+    },
+    {
+      "description": "React Runtime Group",
+      "matchManagers": ["npm"],
+      "matchPackageNames": ["react", "react-dom"],
+      "matchFileNames": ["**/package.json"],
+      "groupName": "React runtime",
+      "groupSlug": "react-runtime"
+    },
+    {
+      "description": "Leave prefixed action pins to the shared action manager",
+      "matchManagers": ["github-actions"],
+      "matchDepNames": ["woodleighschool/.github"],
+      "matchDepTypes": ["action"],
+      "matchFileNames": [".github/workflows/*.yaml", ".github/workflows/*.yml"],
+      "matchCurrentValue": "/^[\\w-]+-v?\\d+\\.\\d+\\.\\d+$/",
+      "matchJsonata": ["$exists(currentDigest)"],
+      "enabled": false
+    },
+    {
+      "matchManagers": ["custom.regex"],
+      "matchDepNames": ["woodleighschool/.github/actions/*"],
+      "groupName": "github-actions",
+      "minimumReleaseAge": "0 days",
+      "semanticCommitType": "chore",
+      "semanticCommitScope": "github-action",
+      "commitMessageTopic": "action {{depName}}",
+      "commitMessagePrefix": "{{semanticCommitType}}({{semanticCommitScope}}):"
+    },
+    {
+      "description": "Hold package-registry updates (Go modules, npm, PyPI, crates) for a day. pnpm refuses lockfile entries younger than that.",
+      "matchCategories": ["golang", "js", "python", "rust"],
+      "minimumReleaseAge": "1 day"
+    },
+    {
+      "description": "First-party packages skip the hold",
+      "matchSourceUrls": ["https://github.com/woodleighschool/**"],
+      "minimumReleaseAge": "0 days"
+    },
+    {
+      "matchManagers": ["mise"],
+      "matchUpdateTypes": ["lockFileMaintenance"],
+      "minimumReleaseAge": "0 days"
+    },
+    {
+      "description": "NPM Bump Range Strategy",
+      "matchManagers": ["npm"],
+      "rangeStrategy": "bump"
+    },
+    {
+      "description": "Skip changelogs for AWS SDK Go v2",
+      "matchSourceUrls": ["https://github.com/aws/aws-sdk-go-v2{/**,}"],
+      "fetchChangeLogs": "off"
+    },
+    {
+      "description": "Auto-merge non-major updates, but only after every CI check passes",
+      "matchUpdateTypes": ["minor", "patch", "digest", "lockFileMaintenance"],
+      "automerge": true
+    },
+    {
+      "description": "zer0ver: 0.x minors can break at any time, don't automerge them. Devtools are the exception: a bad formatter or linter bump only breaks CI, which is what the gate is for",
+      "matchUpdateTypes": ["minor"],
+      "matchCurrentVersion": "/^v?0\\./",
+      "matchDepNames": [
+        "!aqua:dadav/helm-schema",
+        "!helm-unittest/helm-unittest",
+        "!oxfmt",
+        "!shellcheck"
+      ],
+      "automerge": false
+    }
+  ]
+}
