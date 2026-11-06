@@ -113,11 +113,6 @@
       "labels": ["type/minor"]
     },
     {
-      "description": [
-        "zer0ver: a 0.x minor can break at any time. Label it as a major and put it on the major branch.",
-        "The prefix lands it on the major-<groupSlug> branch that Renovate uses to split grouped majors, not on the non-major group PR.",
-        "Keep this rule below the plain minor rule, so that it wins for 0.x."
-      ],
       "matchUpdateTypes": ["minor"],
       "matchCurrentVersion": "/^v?0\\./",
       "labels": ["type/major"],
@@ -132,31 +127,23 @@
       "labels": ["type/digest"]
     },
     {
-      "description": "GitHub Actions Group",
       "matchManagers": ["github-actions"],
       "groupName": "github-actions",
       "minimumReleaseAge": "3 days"
     },
     {
-      "description": [
-        "Mise tools group: the catch-all for mise-managed dev tooling (linters, formatters, CLIs).",
-        "Keep it above the toolchain rules, so that their groupName wins for go, rust and node. A later rule overrides an earlier one.",
-        "Same minimumReleaseAge as the GitHub Actions group. A fresh release often uploads its per-arch assets and attestations after the tag appears. A lock taken too early leaves mise.lock without platform URLs."
-      ],
       "matchManagers": ["mise"],
       "groupName": "mise tools",
       "groupSlug": "mise-tools",
       "minimumReleaseAge": "3 days"
     },
     {
-      "description": "Go Toolchain Group",
       "matchManagers": ["mise"],
       "matchDepNames": ["go"],
       "groupName": "Go toolchain",
       "groupSlug": "go-toolchain"
     },
     {
-      "description": "Rust Toolchain Group",
       "matchManagers": ["mise"],
       "matchDepNames": ["rust"],
       "matchFileNames": [".mise/config.toml"],
@@ -164,7 +151,6 @@
       "groupSlug": "rust-toolchain"
     },
     {
-      "description": "Node Toolchain Group",
       "matchManagers": ["mise"],
       "matchDepNames": ["node"],
       "matchFileNames": [".mise/config.toml"],
@@ -172,7 +158,6 @@
       "groupSlug": "node-toolchain"
     },
     {
-      "description": "pnpm Group",
       "matchManagers": ["mise", "npm"],
       "matchDepNames": ["pnpm"],
       "matchDepTypes": ["tools", "packageManager"],
@@ -182,7 +167,6 @@
       "semanticCommitType": "chore"
     },
     {
-      "description": "React Runtime Group",
       "matchManagers": ["npm"],
       "matchPackageNames": ["react", "react-dom"],
       "matchFileNames": ["**/package.json"],
@@ -210,12 +194,10 @@
       "commitMessagePrefix": "{{semanticCommitType}}({{semanticCommitScope}}):"
     },
     {
-      "description": "Hold package-registry updates (Go modules, npm, PyPI, crates) for a day. pnpm refuses lockfile entries younger than that.",
       "matchCategories": ["golang", "js", "python", "rust"],
       "minimumReleaseAge": "1 day"
     },
     {
-      "description": "First-party packages skip the hold",
       "matchSourceUrls": ["https://github.com/woodleighschool/**"],
       "minimumReleaseAge": "0 days"
     },
@@ -225,22 +207,19 @@
       "minimumReleaseAge": "0 days"
     },
     {
-      "description": "NPM Bump Range Strategy",
       "matchManagers": ["npm"],
       "rangeStrategy": "bump"
     },
     {
-      "description": "Skip changelogs for AWS SDK Go v2",
       "matchSourceUrls": ["https://github.com/aws/aws-sdk-go-v2{/**,}"],
       "fetchChangeLogs": "off"
     },
     {
-      "description": "Auto-merge non-major updates, but only after every CI check passes",
       "matchUpdateTypes": ["minor", "patch", "digest", "lockFileMaintenance"],
       "automerge": true
     },
     {
-      "description": "zer0ver: 0.x minors can break at any time, don't automerge them. Devtools are the exception: a bad formatter or linter bump only breaks CI, which is what the gate is for",
+      "description": "Excluded devtools still automerge; a bad bump only fails CI.",
       "matchUpdateTypes": ["minor"],
       "matchCurrentVersion": "/^v?0\\./",
       "matchDepNames": [
