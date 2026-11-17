@@ -11,7 +11,9 @@
     ":dependencyDashboard",
     ":disableRateLimiting"
   ],
-  "dependencyDashboardTitle": "Renovate Dashboard 🤖",
+  "dependencyDashboard": {
+    "title": "Renovate Dashboard 🤖"
+  },
   "timezone": "Australia/Melbourne",
   "minimumReleaseAgeBehaviour": "timestamp-optional",
   "lockFileMaintenance": {

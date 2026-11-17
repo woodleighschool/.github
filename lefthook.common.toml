@@ -32,7 +32,7 @@ stage_fixed = true
 
 [[pre-commit.jobs.group.jobs]]
 name = "lock-mise"
-run = 'mise lock && git add -A -- .mise ":(exclude).mise/*.toml"'
+run = "mise lock && git add -A -- .mise ':(exclude).mise/*.toml'"
 
 [pre-commit.commands.format-json]
 glob = ["*.json", "*.json5", "*.jsonc"]
