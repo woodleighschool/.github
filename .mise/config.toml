@@ -13,7 +13,6 @@ oxfmt = "0.75.0"
 shellcheck = "0.11.0"
 
 [tasks.validate]
-description = "Validate the Renovate preset"
 run = "renovate-config-validator --strict --no-global renovate-config.json .renovaterc.json5"
 
 [hooks]
